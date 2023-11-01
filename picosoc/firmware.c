@@ -665,14 +665,15 @@ void cmd_echo()
 
 void main()
 {
-	reg_leds = 31;
-	reg_uart_clkdiv = 104;
+	reg_leds = 1;
+	// reg_uart_clkdiv = 104;
+	reg_uart_clkdiv = 20-2;
 	print("Booting..\n");
 
-	reg_leds = 63;
+	reg_leds = 2;
 	set_flash_qspi_flag();
 
-	reg_leds = 127;
+	reg_leds = 3;
 	while (getchar_prompt("Press ENTER to continue..\n") != '\r') { /* wait */ }
 
 	print("\n");

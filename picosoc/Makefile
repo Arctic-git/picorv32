@@ -1,6 +1,65 @@
 
-CROSS=riscv32-unknown-elf-
+CROSS=/Users/sebastian/Downloads/riscv64-unknown-elf-toolchain-10.2.0-2020.12.8-x86_64-apple-darwin/bin/riscv64-unknown-elf-
 CFLAGS=
+
+SCP=scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no
+SSH=ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no
+BB_LOGIN ?= debian@beaglebone.local
+
+bwsim: bw_tb.vvp bw_fw.hex
+	vvp -N $< +firmware=bw_fw.hex
+
+# bwsynsim: bw_syn_tb.vvp bw_fw.hex
+# 	vvp -N $< +firmware=bw_fw.hex
+
+bw.json: bw.v spimemio.v simpleuart.v picosoc.v ../picorv32.v
+	yosys -ql bw.log -p 'synth_ice40 -top bw -json bw.json' $^
+
+bw_tb.vvp: bw_tb.v bw.v spimemio.v simpleuart.v picosoc.v ../picorv32.v spiflash.v
+	iverilog -s testbench -o $@ $^ `yosys-config --datdir/ice40/cells_sim.v` -DNO_ICE40_DEFAULT_ASSIGNMENTS
+
+# bw_syn_tb.vvp: bw_tb.v bw_syn.v spiflash.v
+# 	iverilog -s testbench -o $@ $^ `yosys-config --datdir/ice40/cells_sim.v` -DNO_ICE40_DEFAULT_ASSIGNMENTS
+
+bw_syn.v: bw.json
+	yosys -p 'read_json bw.json; write_verilog bw_syn.v'
+
+bw.asc: bw.pcf bw.json
+	nextpnr-ice40 --hx4k --package tq144 --asc bw.asc --json bw.json --pcf bw.pcf
+
+bw.bin: bw.asc
+	icetime -d hx4k -c 20 -mtr bw.rpt bw.asc
+	icepack bw.asc bw.bin
+
+# hx8kprog: bw.bin bw_fw.bin
+# 	iceprog bw.bin
+# 	iceprog -o 1M bw_fw.bin
+
+# hx8kprog_fw: bw_fw.bin
+# 	iceprog -o 1M bw_fw.bin
+
+bw_sections.lds: sections.lds
+	$(CROSS)cpp -P -DHX8KDEMO -o $@ $^
+
+bw_fw.elf: bw_sections.lds start.s firmware.c
+	$(CROSS)gcc $(CFLAGS) -DHX8KDEMO -mabi=ilp32 -march=rv32imc -Wl,--build-id=none,-Bstatic,-T,bw_sections.lds,--strip-debug -ffreestanding -nostdlib -o bw_fw.elf start.s firmware.c
+
+bw_fw.hex: bw_fw.elf
+	$(CROSS)objcopy -O verilog bw_fw.elf bw_fw.hex
+
+bw_fw.bin: bw_fw.elf
+	$(CROSS)objcopy -O binary bw_fw.elf bw_fw.bin
+
+bw_fused.bin: bw.bin bw_fw.bin
+	./fuse_bin.py bw.bin bw_fw.bin bw_fused.bin 1048576
+
+push: bw_fused.bin
+	@$(SCP) bw_fused.bin $(BB_LOGIN):/home/debian/pushburn.bin
+	
+pushburn: push
+	@$(SSH) $(BB_LOGIN) 'source /etc/profile; source .profile; bw-spi.sh pushburn.bin'
+
+	
 
 # ---- iCE40 HX8K Breakout Board ----
 

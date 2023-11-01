@@ -1,0 +1,73 @@
+
+# Pinout for the iCE40-HX8K Breakout Board
+
+set_io clk_100m 61
+
+#   Subsignal("miso", Pins("67"), IOStandard("LVCMOS33")),
+#   Subsignal("mosi", Pins("68"), IOStandard("LVCMOS33")),
+#   Subsignal("sck",  Pins("70"), IOStandard("LVCMOS33")),
+#   Subsignal("ss",   Pins("71"), IOStandard("LVCMOS33")),    
+
+set_io flash_csb 71
+set_io flash_clk 70
+set_io flash_io0 67
+set_io flash_io1 68
+
+# for QSPI mode the flash chip on the iCE40-HX8K Breakout Board
+# must be replaced with one that supports QSPI and the IO2 and IO3
+# pins must be soldered to T9 and P8 (center on J3)
+#set_io flash_io2 T9
+#set_io flash_io3 P8
+
+set_io ser_tx 37
+set_io ser_rx 39
+
+# left on J3
+#set_io debug_ser_tx T1
+#set_io debug_ser_rx R3
+
+
+
+
+set_io leds[3] 28  
+set_io leds[2] 29  
+set_io leds[1] 31  
+set_io leds[0] 32  
+
+
+## pmod
+#set_io pmod1[0] 37
+#set_io pmod1[1] 39
+#set_io pmod1[2] 42
+#set_io pmod1[3] 44
+#set_io pmod1[4] 38
+#set_io pmod1[5] 41
+#set_io pmod1[6] 43
+#set_io pmod1[7] 45
+#
+#set_io pmod2[0] 47 
+#set_io pmod2[1] 49 
+#set_io pmod2[2] 55 
+#set_io pmod2[3] 60 
+#set_io pmod2[4] 48 
+#set_io pmod2[5] 52 
+#set_io pmod2[6] 56 
+#set_io pmod2[7] 62 
+#
+#set_io pmod3[0] 107  
+#set_io pmod3[1] 112  
+#set_io pmod3[2] 114  
+#set_io pmod3[3] 129  
+#set_io pmod3[4] 110  
+#set_io pmod3[5] 113  
+#set_io pmod3[6] 115  
+#set_io pmod3[7] 130  
+#
+#set_io pmod4[0] 7    
+#set_io pmod4[1] 9    
+#set_io pmod4[2] 15   
+#set_io pmod4[3] 12   
+#set_io pmod4[4] 4    
+#set_io pmod4[5] 8    
+#set_io pmod4[6] 10   
+#set_io pmod4[7] 11 

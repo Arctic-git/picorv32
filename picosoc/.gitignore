@@ -27,3 +27,17 @@
 /testbench.vcd
 /cmos.log
 
+/bw.asc
+/bw.bin
+/bw.json
+/bw.log
+/bw.rpt
+/bw_syn.v
+/bw_syn_tb.vvp
+/bw_tb.vvp
+/bw_fw.elf
+/bw_fw.hex
+/bw_fw.bin
+/bw_fused.bin
+/bw_sections.lds
+.vscode
