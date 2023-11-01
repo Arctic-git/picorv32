@@ -19,9 +19,14 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+// #include <stdio.h>
+
+#define ICEBREAKER
+
 
 #ifdef ICEBREAKER
-#  define MEM_TOTAL 0x20000 /* 128 KB */
+// #  define MEM_TOTAL 0x20000 /* 128 KB */
+#  define MEM_TOTAL (2048*4) /* 8 KB */
 #elif HX8KDEMO
 #  define MEM_TOTAL 0x200 /* 2 KB */
 #else
@@ -243,6 +248,15 @@ char getchar_prompt(char *prompt)
 
 	reg_leds = 0;
 	return c;
+}
+
+void sleep(){
+	uint32_t cycles_begin, cycles_now=0, cycles = 0;
+	__asm__ volatile ("rdcycle %0" : "=r"(cycles_begin));
+	while (cycles < 20000000){
+		__asm__ volatile ("rdcycle %0" : "=r"(cycles_now));
+		cycles = cycles_now - cycles_begin;
+	}
 }
 
 char getchar()
@@ -663,6 +677,10 @@ void cmd_echo()
 
 // --------------------------------------------------------
 
+void _end(){
+while(1);
+}
+
 void main()
 {
 	reg_leds = 1;
@@ -670,11 +688,14 @@ void main()
 	reg_uart_clkdiv = 20-2;
 	print("Booting..\n");
 
+	// char s[50];
+	// snprintf(s, sizeof(s), "test %d\n", reg_leds);
+
 	reg_leds = 2;
-	set_flash_qspi_flag();
+	// set_flash_qspi_flag();
 
 	reg_leds = 3;
-	while (getchar_prompt("Press ENTER to continue..\n") != '\r') { /* wait */ }
+	while (getchar_prompt("Press ENTER to owo..\n") != '\r') { /* wait */ }
 
 	print("\n");
 	print("  ____  _          ____         ____\n");
@@ -760,6 +781,15 @@ void main()
 				break;
 			case 'e':
 				cmd_echo();
+				break;
+			case 'l':
+				;
+				int i=0;
+				while(1){
+					print_hex(i,8); print("\n");
+					sleep();
+					i++;
+				}
 				break;
 			default:
 				continue;

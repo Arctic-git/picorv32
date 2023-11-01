@@ -37,27 +37,31 @@ module bw (
 
 
 );
-	reg [5:0] reset_cnt = 0;
-	wire resetn = &reset_cnt;
+	reg [7:0] reset_cnt = 0;
+	
 	wire clk;
+	wire pll_lock;
+
+	SB_PLL40_CORE #(
+					.FEEDBACK_PATH("SIMPLE"),
+					.PLLOUT_SELECT("GENCLK"),
+					.DIVR(4),
+					.DIVF(31),
+					.DIVQ(5),
+					.FILTER_RANGE(2)
+				) pll_20MHz (
+					.RESETB(1'b1),
+					.BYPASS(1'b0),
+					.REFERENCECLK(clk_100m),
+					.PLLOUTGLOBAL(clk),
+					.LOCK(pll_lock)
+				);
 
 	always @(posedge clk) begin
-		reset_cnt <= reset_cnt + !resetn;
+		if(pll_lock)
+			reset_cnt <= reset_cnt + !resetn;
 	end
-
-	    SB_PLL40_CORE #(
-                      .FEEDBACK_PATH("SIMPLE"),
-                      .PLLOUT_SELECT("GENCLK"),
-                      .DIVR(4),
-                      .DIVF(31),
-                      .DIVQ(5),
-                      .FILTER_RANGE(2)
-                  ) pll_20MHz (
-                      .RESETB(1'b1),
-                      .BYPASS(1'b0),
-                      .REFERENCECLK(clk_100m),
-                      .PLLOUTGLOBAL(clk)
-                  );
+	wire resetn = &reset_cnt;
 
 	wire flash_io0_oe, flash_io0_do, flash_io0_di;
 	wire flash_io1_oe, flash_io1_do, flash_io1_di;
@@ -80,7 +84,7 @@ module bw (
 	reg  [31:0] iomem_rdata;
 
 	reg [31:0] gpio;
-	assign leds = gpio;
+	assign leds[3:0] = gpio;
 
 	always @(posedge clk) begin
 		if (!resetn) begin
@@ -98,7 +102,9 @@ module bw (
 		end
 	end
 
-	picosoc soc (
+	picosoc #(
+		.MEM_WORDS(2048)
+	)soc (
 		.clk          (clk         ),
 		.resetn       (resetn      ),
 

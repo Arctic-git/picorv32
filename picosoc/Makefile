@@ -1,5 +1,5 @@
 
-CROSS=/Users/sebastian/Downloads/riscv64-unknown-elf-toolchain-10.2.0-2020.12.8-x86_64-apple-darwin/bin/riscv64-unknown-elf-
+CROSS=~/Downloads/riscv64-unknown-elf-toolchain-10.2.0-2020.12.8-x86_64-apple-darwin/bin/riscv64-unknown-elf-
 CFLAGS=
 
 SCP=scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no
@@ -25,7 +25,7 @@ bw_syn.v: bw.json
 	yosys -p 'read_json bw.json; write_verilog bw_syn.v'
 
 bw.asc: bw.pcf bw.json
-	nextpnr-ice40 --hx4k --package tq144 --asc bw.asc --json bw.json --pcf bw.pcf
+	nextpnr-ice40 --hx4k --package tq144 --freq 20 --asc bw.asc --json bw.json --pcf bw.pcf
 
 bw.bin: bw.asc
 	icetime -d hx4k -c 20 -mtr bw.rpt bw.asc
@@ -39,10 +39,12 @@ bw.bin: bw.asc
 # 	iceprog -o 1M bw_fw.bin
 
 bw_sections.lds: sections.lds
-	$(CROSS)cpp -P -DHX8KDEMO -o $@ $^
+	$(CROSS)cpp -P  -o $@ $^
 
 bw_fw.elf: bw_sections.lds start.s firmware.c
-	$(CROSS)gcc $(CFLAGS) -DHX8KDEMO -mabi=ilp32 -march=rv32imc -Wl,--build-id=none,-Bstatic,-T,bw_sections.lds,--strip-debug -ffreestanding -nostdlib -o bw_fw.elf start.s firmware.c
+	$(CROSS)gcc $(CFLAGS)  -mabi=ilp32 -march=rv32imc -Wl,--build-id=none,-Bstatic,-T,bw_sections.lds,--strip-debug -ffreestanding -nostdlib -o bw_fw.elf start.s firmware.c
+#	$(CROSS)gcc $(CFLAGS)  -mabi=ilp32 -march=rv32imc -Wl,--build-id=none,-Bstatic,-T,bw_sections.lds,--strip-debug -ffreestanding  -o bw_fw.elf start.s firmware.c
+	$(CROSS)size $@
 
 bw_fw.hex: bw_fw.elf
 	$(CROSS)objcopy -O verilog bw_fw.elf bw_fw.hex
@@ -176,6 +178,11 @@ clean:
 	rm -f hx8kdemo_syn.v hx8kdemo_syn_tb.vvp hx8kdemo_tb.vvp
 	rm -f icebreaker.json icebreaker.log icebreaker.asc icebreaker.rpt icebreaker.bin
 	rm -f icebreaker_syn.v icebreaker_syn_tb.vvp icebreaker_tb.vvp
+
+	rm -f bw_fw.elf bw_fw.hex bw_fw.bin bw_fused.bin cmos.log
+	rm -f bw.blif bw.log bw.asc bw.rpt bw.bin
+	rm -f bw_syn.v bw_syn_tb.vvp bw_tb.vvp
+
 
 .PHONY: spiflash_tb clean
 .PHONY: hx8kprog hx8kprog_fw hx8ksim hx8ksynsim
