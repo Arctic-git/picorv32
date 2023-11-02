@@ -103,7 +103,7 @@ module bw (
 	end
 
 	picosoc #(
-		.MEM_WORDS(2048)
+		.MEM_WORDS(8192/4)
 	)soc (
 		.clk          (clk         ),
 		.resetn       (resetn      ),
