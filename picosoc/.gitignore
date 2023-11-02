@@ -41,3 +41,7 @@
 /bw_fused.bin
 /bw_sections.lds
 .vscode
+.DS_Store
+
+*.bin
+*.elf
